@@ -1,103 +1,114 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Paper,
+  TextInput,
+  PasswordInput,
+  Button,
+  Title,
+  Text,
+  Container,
+  Anchor,
+} from "@mantine/core";
+import { useForm } from "@mantine/form";
+import { showNotification } from "@mantine/notifications";
+import { IconX, IconCheck } from "@tabler/icons-react";
 
-export default function Home() {
+import Header from "@/component/Header";
+import Footer from "@/component/Footer";
+
+export default function loginPage() {
+  const router = useRouter();
+  const xIcon = <IconX size={20} />;
+  const checkIcon = <IconCheck size={20} />;
+  const [type, setType] = useState<"login" | "register">("login");
+  const form = useForm({
+    initialValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
+
+    validate: {
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Email 格式不正確"),
+      password: (value) => (value.length >= 6 ? null : "密碼長度至少 6 字元"),
+    },
+  });
+
+  function handleSubmit(values: typeof form.values) {
+    if (type === "login") {
+      showNotification({
+        title: "登入成功",
+        message: `歡迎回來，${values.username}`,
+        color: "green",
+        icon: checkIcon,
+      });
+      // console.log("登入中...", values);
+      router.push("/account");
+      // 呼叫登入 API
+    } else {
+      showNotification({
+        title: "註冊成功",
+        message: `帳號 ${values.email} 已建立，歡迎加入！`,
+        color: "blue",
+        icon: checkIcon,
+      });
+      // console.log("註冊中...", values);
+      // 呼叫註冊 API
+    }
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen flex flex-col">
+      <Header title="My Account Book" />
+      <main className="flex-grow pt-[80px]">
+        <Container size={400} my={40}>
+          <Title className="text-center">
+            {type === "login" ? "登入帳號" : "建立新帳號"}
+          </Title>
+          <Text size="sm" mt={5} className="text-center">
+            {type === "login" ? "還沒有帳號嗎？" : "已有帳號？"}{" "}
+            <Anchor
+              size="sm"
+              onClick={() => setType(type === "login" ? "register" : "login")}
+            >
+              {type === "login" ? "建立帳號" : "登入"}
+            </Anchor>
+          </Text>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+          <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+            <form onSubmit={form.onSubmit(handleSubmit)}>
+              {type === "register" && (
+                <TextInput
+                  label="用戶名稱"
+                  placeholder="用戶名稱"
+                  {...form.getInputProps("name")}
+                />
+              )}
+
+              <TextInput
+                label="Email"
+                placeholder="you@email.com"
+                mt="md"
+                {...form.getInputProps("email")}
+              />
+
+              <PasswordInput
+                label="密碼"
+                placeholder="密碼"
+                mt="md"
+                {...form.getInputProps("password")}
+              />
+
+              <Button fullWidth mt="xl" type="submit">
+                {type === "login" ? "登入" : "註冊"}
+              </Button>
+            </form>
+          </Paper>
+        </Container>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      <Footer text="COPYRIGHT @ 2025 WeHelp Practice" />
     </div>
   );
 }
