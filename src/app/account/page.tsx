@@ -1,5 +1,5 @@
 "use client";
-import Reac, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextInput, Select, Button, Divider, NumberInput } from "@mantine/core";
 import Header from "@/component/Header";
@@ -13,7 +13,7 @@ type RecordData = {
   timestamp: string;
 };
 
-export default function Page() {
+export default function AccountPage() {
   const [type, setType] = useState<string | null>("");
   const [money, setMoney] = useState<string | number>("");
   const [item, setItem] = useState<string>("");
@@ -26,7 +26,7 @@ export default function Page() {
       alert("請填寫所有欄位！");
       return;
     }
-    let newRecord = {
+    const newRecord = {
       id: recordId,
       type,
       money,
@@ -43,7 +43,7 @@ export default function Page() {
 
   function calculateTotal(records: RecordData[]): number {
     return records.reduce((accumulator, record) => {
-      let money = Number(record.money);
+      const money = Number(record.money);
       return accumulator + (record.type === "支出" ? -money : money);
     }, 0);
   }

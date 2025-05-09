@@ -13,14 +13,13 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
-import { IconX, IconCheck } from "@tabler/icons-react";
+import { IconCheck } from "@tabler/icons-react";
 
 import Header from "@/component/Header";
 import Footer from "@/component/Footer";
 
-export default function loginPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const xIcon = <IconX size={20} />;
   const checkIcon = <IconCheck size={20} />;
   const [type, setType] = useState<"login" | "register">("login");
   const form = useForm({
