@@ -51,8 +51,8 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header title="My Account Book" />
-      <main className="flex-grow pt-[80px]">
-        <div className="flex flex-col w-full max-w-[350px] mt-[20px] md:flex-row flex-wrap gap-[20px] w-full max-w-[1200px] mx-auto px-4 items-center justify-center">
+      <div className="flex-grow">
+        <div className="flex flex-col mt-[20px] md:flex-row flex-wrap gap-[20px] w-full max-w-[1200px] mx-auto px-4 items-center justify-center">
           <Select
             placeholder="請選擇"
             data={["收入", "支出"]}
@@ -83,34 +83,40 @@ export default function AccountPage() {
 
         {/* 顯示紀錄 */}
         <div className="w-full max-w-[800px] mx-auto flex flex-col gap-[20px] md:gap-[10px] md:px-[10px] ">
-          {records.map((record, index) => (
-            <div
-              key={index}
-              className="flex flex-col gap-[5px] md:flex-row md:items-center justify-between pb-2"
-            >
-              <span className="w-full text-center md: w-2/8">
-                {new Date(record.timestamp).toLocaleString()}
-              </span>
-              <span
-                className={`w-full text-center font-semibold md:w-2/8 md:text-right ${
-                  record.type === "收入" ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {record.type === "支出" ? "-" : ""}
-                {Number(record.money).toLocaleString()}
-              </span>
-              <span className="md:w-3/8 text-center">{record.item}</span>
-              <div className="w-full flex justify-center md:w-1/8">
-                <Button
-                  color="grey"
-                  size="compact-sm"
-                  onClick={() => delRecord(record.id)}
-                >
-                  刪除
-                </Button>
-              </div>
+          {records.length === 0 ? (
+            <div className="w-full text-center text-gray-400 py-4">
+              尚無紀錄
             </div>
-          ))}
+          ) : (
+            records.map((record, index) => (
+              <div
+                key={index}
+                className="flex flex-col gap-[5px] md:flex-row md:items-center justify-between pb-2"
+              >
+                <span className="w-full text-center md: w-2/8">
+                  {new Date(record.timestamp).toLocaleString()}
+                </span>
+                <span
+                  className={`w-full text-center font-semibold md:w-2/8 md:text-right ${
+                    record.type === "收入" ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {record.type === "支出" ? "-" : ""}
+                  {Number(record.money).toLocaleString()}
+                </span>
+                <span className="md:w-3/8 text-center">{record.item}</span>
+                <div className="w-full flex justify-center md:w-1/8">
+                  <Button
+                    color="grey"
+                    size="compact-sm"
+                    onClick={() => delRecord(record.id)}
+                  >
+                    刪除
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <Divider my="md" size="xs" className="w-2/3 mx-auto" />
@@ -123,7 +129,7 @@ export default function AccountPage() {
             返回首頁
           </Button>
         </div>
-      </main>
+      </div>
       <Footer text="COPYRIGHT @ 2025 WeHelp Practice" />
     </div>
   );

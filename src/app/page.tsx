@@ -30,6 +30,8 @@ export default function LoginPage() {
     },
 
     validate: {
+      username: (value) =>
+        type === "register" && value.trim() === "" ? "請輸入用戶名稱" : null,
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Email 格式不正確"),
       password: (value) => (value.length >= 6 ? null : "密碼長度至少 6 字元"),
     },
@@ -42,9 +44,12 @@ export default function LoginPage() {
         message: `歡迎回來，${values.username}`,
         color: "green",
         icon: checkIcon,
+        autoClose: 2000,
       });
       // console.log("登入中...", values);
-      router.push("/account");
+      setTimeout(() => {
+        router.push("/account");
+      }, 2500);
       // 呼叫登入 API
     } else {
       showNotification({
@@ -52,6 +57,7 @@ export default function LoginPage() {
         message: `帳號 ${values.email} 已建立，歡迎加入！`,
         color: "blue",
         icon: checkIcon,
+        autoClose: 2000,
       });
       // console.log("註冊中...", values);
       // 呼叫註冊 API
@@ -82,7 +88,7 @@ export default function LoginPage() {
                 <TextInput
                   label="用戶名稱"
                   placeholder="用戶名稱"
-                  {...form.getInputProps("name")}
+                  {...form.getInputProps("username")}
                 />
               )}
 
