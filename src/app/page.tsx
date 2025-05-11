@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Paper,
@@ -13,7 +13,13 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconX } from "@tabler/icons-react";
+import { auth } from "@/firebase";
+import {
+  AuthErrorCodes,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 import Header from "@/component/Header";
 import Footer from "@/component/Footer";
@@ -21,46 +27,80 @@ import Footer from "@/component/Footer";
 export default function LoginPage() {
   const router = useRouter();
   const checkIcon = <IconCheck size={20} />;
+  const errorIcon = <IconX size={20} />;
   const [type, setType] = useState<"login" | "register">("login");
   const form = useForm({
     initialValues: {
-      username: "",
       email: "",
       password: "",
     },
 
     validate: {
-      username: (value) =>
-        type === "register" && value.trim() === "" ? "請輸入用戶名稱" : null,
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Email 格式不正確"),
       password: (value) => (value.length >= 6 ? null : "密碼長度至少 6 字元"),
     },
   });
 
-  function handleSubmit(values: typeof form.values) {
-    if (type === "login") {
+  async function handleSubmit(values: typeof form.values) {
+    const showSuccessNotification = (
+      title: string,
+      message: string,
+      color: string
+    ) => {
       showNotification({
-        title: "登入成功",
-        message: `歡迎回來，${values.username}`,
-        color: "green",
+        title,
+        message,
+        color,
         icon: checkIcon,
         autoClose: 2000,
       });
-      // console.log("登入中...", values);
-      setTimeout(() => {
-        router.push("/account");
-      }, 2500);
-      // 呼叫登入 API
-    } else {
+    };
+
+    const showErrorNotification = (title: string, message: string) => {
       showNotification({
-        title: "註冊成功",
-        message: `帳號 ${values.email} 已建立，歡迎加入！`,
-        color: "blue",
-        icon: checkIcon,
-        autoClose: 2000,
+        title,
+        message,
+        color: "red",
+        icon: errorIcon,
       });
-      // console.log("註冊中...", values);
-      // 呼叫註冊 API
+    };
+
+    try {
+      let userCredential;
+      if (type === "login") {
+        userCredential = await signInWithEmailAndPassword(
+          auth,
+          values.email,
+          values.password
+        );
+        showSuccessNotification(
+          "登入成功",
+          `歡迎回來，${userCredential.user.email}`,
+          "green"
+        );
+        setTimeout(() => {
+          router.push("/account");
+        }, 2500);
+      } else {
+        userCredential = await createUserWithEmailAndPassword(
+          auth,
+          values.email,
+          values.password
+        );
+        showSuccessNotification(
+          "註冊成功",
+          `帳號 ${userCredential.user.email} 已建立，歡迎加入！`,
+          "blue"
+        );
+      }
+    } catch (error: any) {
+      if (error.code == AuthErrorCodes.USER_DELETED) {
+        showErrorNotification("登入失敗", "無此使用者，請先註冊！");
+      } else if (error.code == AuthErrorCodes.INVALID_PASSWORD) {
+        showErrorNotification("登入失敗", "密碼錯誤，請再試一次");
+      } else {
+        showErrorNotification("操作失敗", error.message || "請再試一次");
+      }
     }
   }
 
@@ -84,14 +124,6 @@ export default function LoginPage() {
 
           <Paper withBorder shadow="md" p={30} mt={30} radius="md">
             <form onSubmit={form.onSubmit(handleSubmit)}>
-              {type === "register" && (
-                <TextInput
-                  label="用戶名稱"
-                  placeholder="用戶名稱"
-                  {...form.getInputProps("username")}
-                />
-              )}
-
               <TextInput
                 label="Email"
                 placeholder="you@email.com"
