@@ -14,21 +14,24 @@ import {
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { IconCheck, IconX } from "@tabler/icons-react";
-import { auth } from "@/firebase";
+import { auth } from "@/lib/firebase";
 import {
   AuthErrorCodes,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  onAuthStateChanged,
+  User,
+  signOut,
 } from "firebase/auth";
 
-import Header from "@/component/Header";
-import Footer from "@/component/Footer";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function LoginPage() {
   const router = useRouter();
-  const checkIcon = <IconCheck size={20} />;
-  const errorIcon = <IconX size={20} />;
   const [type, setType] = useState<"login" | "register">("login");
+  const [member, setMember] = useState<User | null>(null);
+
   const form = useForm({
     initialValues: {
       email: "",
@@ -51,7 +54,7 @@ export default function LoginPage() {
         title,
         message,
         color,
-        icon: checkIcon,
+        icon: <IconCheck size={20} />,
         autoClose: 2000,
       });
     };
@@ -61,7 +64,7 @@ export default function LoginPage() {
         title,
         message,
         color: "red",
-        icon: errorIcon,
+        icon: <IconX size={20} />,
       });
     };
 
@@ -78,9 +81,6 @@ export default function LoginPage() {
           `歡迎回來，${userCredential.user.email}`,
           "green"
         );
-        setTimeout(() => {
-          router.push("/account");
-        }, 2500);
       } else {
         userCredential = await createUserWithEmailAndPassword(
           auth,
@@ -98,52 +98,80 @@ export default function LoginPage() {
         showErrorNotification("登入失敗", "無此使用者，請先註冊！");
       } else if (error.code == AuthErrorCodes.INVALID_PASSWORD) {
         showErrorNotification("登入失敗", "密碼錯誤，請再試一次");
+      } else if (error.code == AuthErrorCodes.EMAIL_EXISTS) {
+        showErrorNotification("註冊失敗", "信箱已被使用");
       } else {
         showErrorNotification("操作失敗", error.message || "請再試一次");
       }
     }
   }
 
+  const logout = async () => {
+    await signOut(auth);
+  };
+
+  useEffect(() => {
+    const monitorAuthState = onAuthStateChanged(auth, (user) => {
+      setMember(user || null);
+    });
+    return () => monitorAuthState();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header title="My Account Book" />
       <main className="flex-grow pt-[80px]">
-        <Container size={400} my={40}>
-          <Title className="text-center">
-            {type === "login" ? "登入帳號" : "建立新帳號"}
-          </Title>
-          <Text size="sm" mt={5} className="text-center">
-            {type === "login" ? "還沒有帳號嗎？" : "已有帳號？"}{" "}
-            <Anchor
-              size="sm"
-              onClick={() => setType(type === "login" ? "register" : "login")}
-            >
-              {type === "login" ? "建立帳號" : "登入"}
-            </Anchor>
-          </Text>
+        {member ? (
+          <Container size={400} my={40}>
+            <Title className="text-center">
+              {member.email} <br />
+              已登入
+            </Title>
+            <Button fullWidth mt="xl" onClick={() => router.push("/account")}>
+              開始記帳
+            </Button>
+            <Button fullWidth mt="xl" onClick={logout}>
+              登出
+            </Button>
+          </Container>
+        ) : (
+          <Container size={400} my={40}>
+            <Title className="text-center">
+              {type === "login" ? "登入帳號" : "建立新帳號"}
+            </Title>
+            <Text size="sm" mt={5} className="text-center">
+              {type === "login" ? "還沒有帳號嗎？" : "已有帳號？"}{" "}
+              <Anchor
+                size="sm"
+                onClick={() => setType(type === "login" ? "register" : "login")}
+              >
+                {type === "login" ? "建立帳號" : "登入"}
+              </Anchor>
+            </Text>
 
-          <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-            <form onSubmit={form.onSubmit(handleSubmit)}>
-              <TextInput
-                label="Email"
-                placeholder="you@email.com"
-                mt="md"
-                {...form.getInputProps("email")}
-              />
+            <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+              <form onSubmit={form.onSubmit(handleSubmit)}>
+                <TextInput
+                  label="Email"
+                  placeholder="you@email.com"
+                  mt="md"
+                  {...form.getInputProps("email")}
+                />
 
-              <PasswordInput
-                label="密碼"
-                placeholder="密碼"
-                mt="md"
-                {...form.getInputProps("password")}
-              />
+                <PasswordInput
+                  label="密碼"
+                  placeholder="密碼"
+                  mt="md"
+                  {...form.getInputProps("password")}
+                />
 
-              <Button fullWidth mt="xl" type="submit">
-                {type === "login" ? "登入" : "註冊"}
-              </Button>
-            </form>
-          </Paper>
-        </Container>
+                <Button fullWidth mt="xl" type="submit">
+                  {type === "login" ? "登入" : "註冊"}
+                </Button>
+              </form>
+            </Paper>
+          </Container>
+        )}
       </main>
       <Footer text="COPYRIGHT @ 2025 WeHelp Practice" />
     </div>

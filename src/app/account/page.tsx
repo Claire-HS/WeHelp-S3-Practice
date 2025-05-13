@@ -1,9 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { TextInput, Select, Button, Divider, NumberInput } from "@mantine/core";
-import Header from "@/component/Header";
-import Footer from "@/component/Footer";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import {
+  TextInput,
+  Select,
+  Button,
+  Divider,
+  NumberInput,
+  Loader,
+} from "@mantine/core";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 type RecordData = {
   id: number;
@@ -14,12 +23,14 @@ type RecordData = {
 };
 
 export default function AccountPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [type, setType] = useState<string | null>("");
   const [money, setMoney] = useState<string | number>("");
   const [item, setItem] = useState<string>("");
   const [records, setRecords] = useState<RecordData[]>([]);
   const [recordId, setRecordId] = useState(1);
-  const router = useRouter();
 
   function addRecord() {
     if (!type || !money || !item) {
@@ -46,6 +57,31 @@ export default function AccountPage() {
       const money = Number(record.money);
       return accumulator + (record.type === "支出" ? -money : money);
     }, 0);
+  }
+
+  useEffect(() => {
+    const monitorAuthState = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        router.push("/");
+      }
+      setLoading(false);
+    });
+
+    return () => monitorAuthState();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-1000 flex items-center justify-center bg-white">
+        <Loader color="blue" type="dots" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
