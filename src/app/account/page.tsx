@@ -72,7 +72,6 @@ export default function AccountPage() {
     );
 
     setRecords((prev) => [...prev, { id: docRef.id, ...newRecord }]);
-    setType("");
     setMoney("");
     setItem("");
   }
