@@ -16,13 +16,13 @@ import { showNotification } from "@mantine/notifications";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { auth } from "@/lib/firebase";
 import {
-  AuthErrorCodes,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
   User,
   signOut,
 } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -94,20 +94,14 @@ export default function LoginPage() {
         );
       }
     } catch (error: unknown) {
-      console.error("Firebase Auth Error:", error);
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        typeof (error as { code: unknown }).code === "string"
-      ) {
-        const err = error as { code: string; message?: string };
-        if (err.code === "auth/invalid-credential") {
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/invalid-credential") {
           showErrorNotification("登入失敗", "帳號或密碼錯誤，請再試一次");
         } else {
-          showErrorNotification("操作失敗", err.message || "請再試一次");
+          showErrorNotification("操作失敗", error.message);
         }
       } else {
+        console.error("未知錯誤：", error);
         showErrorNotification("未知錯誤", "請再試一次");
       }
     }
