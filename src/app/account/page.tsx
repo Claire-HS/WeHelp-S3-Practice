@@ -165,61 +165,58 @@ export default function AccountPage() {
               尚無紀錄
             </div>
           ) : (
-            <ul className="space-y-2">
-              {records.map((record) => (
-                <li
-                  key={record.id}
-                  className="flex flex-col md:flex-row md:items-center justify-between border-b pb-2"
-                >
-                  <span className="text-sm text-gray-500">
-                    {record.timestamp.toDate().toLocaleString()}
-                  </span>
-                  <span
-                    className={`font-semibold ${
-                      record.type === "收入" ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {record.type === "支出" ? "-" : ""}
-                    {Number(record.money).toLocaleString()}
-                  </span>
-                  <span className="text-gray-800">{record.item}</span>
-                  <button
-                    onClick={() => delRecord(record.id)}
-                    className="text-sm text-red-600 hover:underline"
-                  >
-                    刪除
-                  </button>
-                </li>
-              ))}
-            </ul>
-            // records.map((record, index) => (
-            //   <div
-            //     key={index}
-            //     className="flex flex-col gap-[5px] md:flex-row md:items-center justify-between pb-2"
-            //   >
-            //     <span className="w-full text-center md: w-2/8">
-            //       {new Date(record.timestamp).toLocaleString()}
-            //     </span>
-            //     <span
-            //       className={`w-full text-center font-semibold md:w-2/8 md:text-right ${
-            //         record.type === "收入" ? "text-green-600" : "text-red-600"
-            //       }`}
+            // <ul className="space-y-2">
+            //   {records.map((record) => (
+            //     <li
+            //       key={record.id}
+            //       className="flex flex-col md:flex-row md:items-center justify-between border-b pb-2"
             //     >
-            //       {record.type === "支出" ? "-" : ""}
-            //       {Number(record.money).toLocaleString()}
-            //     </span>
-            //     <span className="md:w-3/8 text-center">{record.item}</span>
-            //     <div className="w-full flex justify-center md:w-1/8">
-            //       <Button
-            //         color="grey"
-            //         size="compact-sm"
+            //       <span className="text-sm text-gray-500">
+            //         {record.timestamp.toDate().toLocaleString()}
+            //       </span>
+            //       <span
+            //         className={`font-semibold ${
+            //           record.type === "收入" ? "text-green-600" : "text-red-600"
+            //         }`}
+            //       >
+            //         {record.type === "支出" ? "-" : ""}
+            //         {Number(record.money).toLocaleString()}
+            //       </span>
+            //       <span className="text-gray-800">{record.item}</span>
+            //       <button
             //         onClick={() => delRecord(record.id)}
+            //         className="text-sm text-red-600 hover:underline"
             //       >
             //         刪除
-            //       </Button>
-            //     </div>
-            //   </div>
-            // ))
+            //       </button>
+            //     </li>
+            //   ))}
+            // </ul>
+            records.map((record) => (
+              <div className="flex flex-col gap-[5px] md:flex-row md:items-center justify-between pb-2">
+                <span className="w-full text-center md: w-2/8">
+                  {record.timestamp.toDate().toLocaleString()}
+                </span>
+                <span
+                  className={`w-full text-center font-semibold md:w-2/8 md:text-right ${
+                    record.type === "收入" ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {record.type === "支出" ? "-" : ""}
+                  {Number(record.money).toLocaleString()}
+                </span>
+                <span className="md:w-3/8 text-center">{record.item}</span>
+                <div className="w-full flex justify-center md:w-1/8">
+                  <Button
+                    color="grey"
+                    size="compact-sm"
+                    onClick={() => delRecord(record.id)}
+                  >
+                    刪除
+                  </Button>
+                </div>
+              </div>
+            ))
           )}
         </div>
 
