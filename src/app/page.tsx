@@ -98,7 +98,7 @@ export default function LoginPage() {
         typeof error === "object" &&
         error !== null &&
         "code" in error &&
-        typeof (error as any).code === "string"
+        typeof (error as { code: unknown }).code === "string"
       ) {
         const err = error as { code: string; message?: string };
         if (err.code == AuthErrorCodes.USER_DELETED) {
