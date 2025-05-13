@@ -38,7 +38,6 @@ export default function AccountPage() {
   const [money, setMoney] = useState<string | number>("");
   const [item, setItem] = useState<string>("");
   const [records, setRecords] = useState<RecordData[]>([]);
-  // const [recordId, setRecordId] = useState(1);
 
   async function fetchRecords(userId: string) {
     const recordsRef = collection(db, "users", userId, "records");
@@ -58,11 +57,9 @@ export default function AccountPage() {
       return;
     }
     const newRecord = {
-      // id: recordId,
       type,
       money,
       item,
-      // timestamp: new Date().toISOString(),
       timestamp: Timestamp.now(),
     };
 
@@ -87,9 +84,6 @@ export default function AccountPage() {
     await deleteDoc(doc(db, "users", userId, "records", id));
     setRecords((prev) => prev.filter((record) => record.id !== id));
   }
-  // function delRecord(idToDelete: number) {
-  //   setRecords((prev) => prev.filter((record) => record.id !== idToDelete));
-  // }
 
   function calculateTotal(records: RecordData[]): number {
     return records.reduce((accumulator, record) => {
@@ -165,35 +159,11 @@ export default function AccountPage() {
               尚無紀錄
             </div>
           ) : (
-            // <ul className="space-y-2">
-            //   {records.map((record) => (
-            //     <li
-            //       key={record.id}
-            //       className="flex flex-col md:flex-row md:items-center justify-between border-b pb-2"
-            //     >
-            //       <span className="text-sm text-gray-500">
-            //         {record.timestamp.toDate().toLocaleString()}
-            //       </span>
-            //       <span
-            //         className={`font-semibold ${
-            //           record.type === "收入" ? "text-green-600" : "text-red-600"
-            //         }`}
-            //       >
-            //         {record.type === "支出" ? "-" : ""}
-            //         {Number(record.money).toLocaleString()}
-            //       </span>
-            //       <span className="text-gray-800">{record.item}</span>
-            //       <button
-            //         onClick={() => delRecord(record.id)}
-            //         className="text-sm text-red-600 hover:underline"
-            //       >
-            //         刪除
-            //       </button>
-            //     </li>
-            //   ))}
-            // </ul>
             records.map((record) => (
-              <div className="flex flex-col gap-[5px] md:flex-row md:items-center justify-between pb-2">
+              <div
+                key={record.id}
+                className="flex flex-col gap-[5px] md:flex-row md:items-center justify-between pb-2"
+              >
                 <span className="w-full text-center md: w-2/8">
                   {record.timestamp.toDate().toLocaleString()}
                 </span>
