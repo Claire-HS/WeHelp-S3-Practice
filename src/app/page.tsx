@@ -93,15 +93,25 @@ export default function LoginPage() {
           "blue"
         );
       }
-    } catch (error: any) {
-      if (error.code == AuthErrorCodes.USER_DELETED) {
-        showErrorNotification("登入失敗", "無此使用者，請先註冊！");
-      } else if (error.code == AuthErrorCodes.INVALID_PASSWORD) {
-        showErrorNotification("登入失敗", "密碼錯誤，請再試一次");
-      } else if (error.code == AuthErrorCodes.EMAIL_EXISTS) {
-        showErrorNotification("註冊失敗", "信箱已被使用");
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        typeof (error as any).code === "string"
+      ) {
+        const err = error as { code: string; message?: string };
+        if (err.code == AuthErrorCodes.USER_DELETED) {
+          showErrorNotification("登入失敗", "無此使用者，請先註冊！");
+        } else if (err.code == AuthErrorCodes.INVALID_PASSWORD) {
+          showErrorNotification("登入失敗", "密碼錯誤，請再試一次");
+        } else if (err.code == AuthErrorCodes.EMAIL_EXISTS) {
+          showErrorNotification("註冊失敗", "信箱已被使用");
+        } else {
+          showErrorNotification("操作失敗", err.message || "請再試一次");
+        }
       } else {
-        showErrorNotification("操作失敗", error.message || "請再試一次");
+        showErrorNotification("未知錯誤", "請再試一次");
       }
     }
   }
