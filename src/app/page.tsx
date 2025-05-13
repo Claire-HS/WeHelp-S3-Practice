@@ -94,6 +94,7 @@ export default function LoginPage() {
         );
       }
     } catch (error: unknown) {
+      console.error("Firebase Auth Error:", error);
       if (
         typeof error === "object" &&
         error !== null &&
