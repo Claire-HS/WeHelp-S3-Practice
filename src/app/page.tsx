@@ -102,12 +102,8 @@ export default function LoginPage() {
         typeof (error as { code: unknown }).code === "string"
       ) {
         const err = error as { code: string; message?: string };
-        if (err.code == AuthErrorCodes.USER_DELETED) {
-          showErrorNotification("登入失敗", "無此使用者，請先註冊！");
-        } else if (err.code == AuthErrorCodes.INVALID_PASSWORD) {
-          showErrorNotification("登入失敗", "密碼錯誤，請再試一次");
-        } else if (err.code == AuthErrorCodes.EMAIL_EXISTS) {
-          showErrorNotification("註冊失敗", "信箱已被使用");
+        if (err.code === "auth/invalid-credential") {
+          showErrorNotification("登入失敗", "帳號或密碼錯誤，請再試一次");
         } else {
           showErrorNotification("操作失敗", err.message || "請再試一次");
         }
