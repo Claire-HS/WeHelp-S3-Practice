@@ -2,7 +2,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  Timestamp,
+} from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import {
   TextInput,
   Select,
@@ -15,11 +23,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 type RecordData = {
-  id: number;
+  id: string;
   type: string | null;
   money: string | number;
   item: string;
-  timestamp: string;
+  timestamp: Timestamp;
 };
 
 export default function AccountPage() {
@@ -30,27 +38,58 @@ export default function AccountPage() {
   const [money, setMoney] = useState<string | number>("");
   const [item, setItem] = useState<string>("");
   const [records, setRecords] = useState<RecordData[]>([]);
-  const [recordId, setRecordId] = useState(1);
+  // const [recordId, setRecordId] = useState(1);
 
-  function addRecord() {
+  async function fetchRecords(userId: string) {
+    const recordsRef = collection(db, "users", userId, "records");
+    const snapshot = await getDocs(recordsRef);
+
+    const data: RecordData[] = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as Omit<RecordData, "id">),
+    }));
+
+    setRecords(data);
+  }
+
+  async function addRecord() {
     if (!type || !money || !item) {
       alert("請填寫所有欄位！");
       return;
     }
     const newRecord = {
-      id: recordId,
+      // id: recordId,
       type,
       money,
       item,
-      timestamp: new Date().toISOString(),
+      // timestamp: new Date().toISOString(),
+      timestamp: Timestamp.now(),
     };
-    setRecords((prev) => [...prev, newRecord]);
-    setRecordId(recordId + 1);
+
+    const userId = user?.uid;
+    if (!userId) return;
+
+    const docRef = await addDoc(
+      collection(db, "users", userId, "records"),
+      newRecord
+    );
+
+    setRecords((prev) => [...prev, { id: docRef.id, ...newRecord }]);
+    setType("");
+    setMoney("");
+    setItem("");
   }
 
-  function delRecord(idToDelete: number) {
-    setRecords((prev) => prev.filter((record) => record.id !== idToDelete));
+  async function delRecord(id: string) {
+    const userId = user?.uid;
+    if (!userId) return;
+
+    await deleteDoc(doc(db, "users", userId, "records", id));
+    setRecords((prev) => prev.filter((record) => record.id !== id));
   }
+  // function delRecord(idToDelete: number) {
+  //   setRecords((prev) => prev.filter((record) => record.id !== idToDelete));
+  // }
 
   function calculateTotal(records: RecordData[]): number {
     return records.reduce((accumulator, record) => {
@@ -60,13 +99,15 @@ export default function AccountPage() {
   }
 
   useEffect(() => {
-    const monitorAuthState = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
+    const monitorAuthState = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
         router.push("/");
+        return;
+      } else {
+        setUser(currentUser);
+        await fetchRecords(currentUser.uid);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => monitorAuthState();
@@ -124,34 +165,61 @@ export default function AccountPage() {
               尚無紀錄
             </div>
           ) : (
-            records.map((record, index) => (
-              <div
-                key={index}
-                className="flex flex-col gap-[5px] md:flex-row md:items-center justify-between pb-2"
-              >
-                <span className="w-full text-center md: w-2/8">
-                  {new Date(record.timestamp).toLocaleString()}
-                </span>
-                <span
-                  className={`w-full text-center font-semibold md:w-2/8 md:text-right ${
-                    record.type === "收入" ? "text-green-600" : "text-red-600"
-                  }`}
+            <ul className="space-y-2">
+              {records.map((record) => (
+                <li
+                  key={record.id}
+                  className="flex flex-col md:flex-row md:items-center justify-between border-b pb-2"
                 >
-                  {record.type === "支出" ? "-" : ""}
-                  {Number(record.money).toLocaleString()}
-                </span>
-                <span className="md:w-3/8 text-center">{record.item}</span>
-                <div className="w-full flex justify-center md:w-1/8">
-                  <Button
-                    color="grey"
-                    size="compact-sm"
+                  <span className="text-sm text-gray-500">
+                    {record.timestamp.toDate().toLocaleString()}
+                  </span>
+                  <span
+                    className={`font-semibold ${
+                      record.type === "收入" ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {record.type === "支出" ? "-" : ""}
+                    {Number(record.money).toLocaleString()}
+                  </span>
+                  <span className="text-gray-800">{record.item}</span>
+                  <button
                     onClick={() => delRecord(record.id)}
+                    className="text-sm text-red-600 hover:underline"
                   >
                     刪除
-                  </Button>
-                </div>
-              </div>
-            ))
+                  </button>
+                </li>
+              ))}
+            </ul>
+            // records.map((record, index) => (
+            //   <div
+            //     key={index}
+            //     className="flex flex-col gap-[5px] md:flex-row md:items-center justify-between pb-2"
+            //   >
+            //     <span className="w-full text-center md: w-2/8">
+            //       {new Date(record.timestamp).toLocaleString()}
+            //     </span>
+            //     <span
+            //       className={`w-full text-center font-semibold md:w-2/8 md:text-right ${
+            //         record.type === "收入" ? "text-green-600" : "text-red-600"
+            //       }`}
+            //     >
+            //       {record.type === "支出" ? "-" : ""}
+            //       {Number(record.money).toLocaleString()}
+            //     </span>
+            //     <span className="md:w-3/8 text-center">{record.item}</span>
+            //     <div className="w-full flex justify-center md:w-1/8">
+            //       <Button
+            //         color="grey"
+            //         size="compact-sm"
+            //         onClick={() => delRecord(record.id)}
+            //       >
+            //         刪除
+            //       </Button>
+            //     </div>
+            //   </div>
+            // ))
           )}
         </div>
 

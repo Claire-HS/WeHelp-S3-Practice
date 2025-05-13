@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "demo-project"
-  }
+    "default": "wehelp-s3-practice-c1357",
+    "practice": "wehelp-s3-practice-c1357"
+  },
+  "targets": {},
+  "etags": {}
 }
